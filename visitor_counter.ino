@@ -40,6 +40,7 @@ void print00(int startIndex, int rowIndex, int num) {
 }
 
 int visitors = 0;
+#define maxVisitors 3
 
 void setup() {
   pinMode(L_YL63, INPUT);
@@ -56,6 +57,18 @@ void setup() {
 void loop() {
 
   print00(10, 0, visitors);
+  print00(13, 0, maxVisitors);
+
+  if (visitors == maxVisitors) {
+    LCD.setCursor(0, 1);
+    LCD.print("limit     ");
+  } else if (visitors > maxVisitors) {
+    LCD.setCursor(0, 1);
+    LCD.print("OVERLIMIT!");
+  } else {
+    LCD.setCursor(0, 1);
+    LCD.print("          ");
+  }
 
   if (!isLempty) {
     visitors++;
