@@ -27,6 +27,20 @@ LiquidCrystal_I2C LCD (0x27, 16, 2);
 #define isLempty digitalRead(L_YL63)
 #define isRempty digitalRead(R_YL63)
 
+void print00(int startIndex, int rowIndex, int num) {
+  if (num < 0 || num >= 10) {
+    LCD.setCursor(startIndex, rowIndex);
+    LCD.print(num);
+  } else {
+    LCD.setCursor(startIndex, rowIndex);
+    LCD.print(0);
+    LCD.setCursor(startIndex + 1, rowIndex);
+    LCD.print(num);
+  }
+}
+
+int visitors = 0;
+
 void setup() {
   pinMode(L_YL63, INPUT);
   pinMode(R_YL63, INPUT);
@@ -36,14 +50,21 @@ void setup() {
 
   LCD.setCursor(0, 0);
   LCD.print("Visitors: 00/??");
+
 }
 
 void loop() {
-  LCD.setCursor(0, 1);
-  LCD.print(isLempty);
 
-  LCD.setCursor(2, 1);
-  LCD.print(isRempty);
-   
-   delay(500);
+  print00(10, 0, visitors);
+
+  if (!isLempty) {
+    visitors++;
+
+     delay(1000);
+     return;
+  } else if (!isRempty) {
+    visitors--;
+
+     delay(1000);
+  }
 }
