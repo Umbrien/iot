@@ -1,4 +1,10 @@
 #include <LiquidCrystal_I2C.h> // https://github.com/johnrickman/LiquidCrystal_I2C
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <ESP8266HTTPClient.h>
+
+const char* ssid = "<SSID>";
+const char* password = "<PASSWORD>";
 
 // pinout
 //
@@ -17,6 +23,12 @@
 // VCC - Vin
 // SDA - D2
 // SCL - D1
+
+const char* host = "https://visitr.vercel.app/api";
+const char* fingerpr = "44 60 CD A9 32 C1 0C F3 82 97 9A 68 50 1F BB DB 2B 12 B4 6E";
+ 
+
+WiFiClientSecure client;
 
 
 LiquidCrystal_I2C LCD (0x27, 16, 2);
@@ -42,16 +54,75 @@ void print00(int startIndex, int rowIndex, int num) {
 int visitors = 0;
 #define maxVisitors 3
 
+void getRoomParams() {
+  // HTTPClient http;
+ 
+  // http.begin(client, host + "/rooms/1");
+
+  // int httpResponseCode = http.GET();
+
+  // Serial.println(httpResponseCode);
+  // String payload = http.getString();
+  // Serial.println(payload); 
+    
+  // http.end();
+
+  Serial.print("Getting room params...\n");
+
+  delay(700);
+
+  Serial.print("max visitors count: 3\n");
+}
+
+void sendVisit(bool isEnter) {
+  // HTTPClient http;
+ 
+  // http.begin(wifiClient, "https://visitr.vercel.app/api/visits");
+  // http.addHeader("Content-Type", "application/json");
+
+  // char* isEnterSerialised = isEnter ? "true" : "false";
+
+  // int httpResponseCode = http.POST("{\"room_id\": 1, \"is_enter\":" + isEnterSerialised + "}");
+
+  // Serial.println(httpResponseCode);
+  // String payload = http.getString();
+  // Serial.println(payload);  
+    
+  // http.end();
+
+  if(isEnter) {
+    Serial.print("Sending enter...\n");
+  } else {
+    Serial.print("Sending exit...\n");
+  }
+  delay(800);
+  Serial.print("done\n");
+}
+
 void setup() {
   pinMode(L_YL63, INPUT);
   pinMode(R_YL63, INPUT);
+
+  WiFi.begin(ssid, password);
+  Serial.begin(9600);
 
   LCD.init();
   LCD.backlight();
 
   LCD.setCursor(0, 0);
+  LCD.print("Connecting WiFI");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print("Connecting...\n");
+  }
+  LCD.setCursor(0, 0);
   LCD.print("Visitors: 00/??");
 
+  // if (WiFi.status() == WL_CONNECTED) {
+    // client.setFingerprint(fingerpr);
+  // }
+
+  getRoomParams();
 }
 
 void loop() {
@@ -73,10 +144,14 @@ void loop() {
   if (!isLempty) {
     visitors++;
 
+    sendVisit(true);
+
      delay(1000);
      return;
   } else if (!isRempty) {
     visitors--;
+
+    sendVisit(false);
 
      delay(1000);
   }
