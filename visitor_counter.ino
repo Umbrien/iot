@@ -35,6 +35,7 @@ LiquidCrystal_I2C LCD (0x27, 16, 2);
 
 #define L_YL63 12
 #define R_YL63 14
+#define BUZZER 9
 
 #define isLempty digitalRead(L_YL63)
 #define isRempty digitalRead(R_YL63)
@@ -55,53 +56,44 @@ int visitors = 0;
 #define maxVisitors 3
 
 void getRoomParams() {
-  // HTTPClient http;
+  HTTPClient http;
  
-  // http.begin(client, host + "/rooms/1");
+  http.begin(client, host + "/rooms/1");
 
-  // int httpResponseCode = http.GET();
+  int httpResponseCode = http.GET();
 
-  // Serial.println(httpResponseCode);
-  // String payload = http.getString();
-  // Serial.println(payload); 
+  Serial.println(httpResponseCode);
+  String payload = http.getString();
+  Serial.println(payload); 
     
-  // http.end();
-
-  Serial.print("Getting room params...\n");
-
-  delay(700);
-
-  Serial.print("max visitors count: 3\n");
+  http.end();
 }
 
 void sendVisit(bool isEnter) {
-  // HTTPClient http;
+  HTTPClient http;
  
-  // http.begin(wifiClient, "https://visitr.vercel.app/api/visits");
-  // http.addHeader("Content-Type", "application/json");
-
-  // char* isEnterSerialised = isEnter ? "true" : "false";
-
-  // int httpResponseCode = http.POST("{\"room_id\": 1, \"is_enter\":" + isEnterSerialised + "}");
-
-  // Serial.println(httpResponseCode);
-  // String payload = http.getString();
-  // Serial.println(payload);  
-    
-  // http.end();
+  http.begin(wifiClient, host + "/visits");
+  http.addHeader("Content-Type", "application/json");
 
   if(isEnter) {
     Serial.print("Sending enter...\n");
   } else {
     Serial.print("Sending exit...\n");
   }
-  delay(800);
-  Serial.print("done\n");
+  char* isEnterSerialised = isEnter ? "true" : "false";
+  int httpResponseCode = http.POST("{\"room_id\": 1, \"is_enter\":" + isEnterSerialised + "}");
+
+  Serial.println(httpResponseCode);
+  String payload = http.getString();
+  Serial.println(payload);  
+    
+  http.end();
 }
 
 void setup() {
   pinMode(L_YL63, INPUT);
   pinMode(R_YL63, INPUT);
+  pinMode(BUZZER, OUTPUT);
 
   WiFi.begin(ssid, password);
   Serial.begin(9600);
@@ -118,9 +110,9 @@ void setup() {
   LCD.setCursor(0, 0);
   LCD.print("Visitors: 00/??");
 
-  // if (WiFi.status() == WL_CONNECTED) {
-    // client.setFingerprint(fingerpr);
-  // }
+  if (WiFi.status() == WL_CONNECTED) {
+    client.setFingerprint(fingerpr);
+  }
 
   getRoomParams();
 }
@@ -135,6 +127,7 @@ void loop() {
     LCD.print("limit     ");
   } else if (visitors > maxVisitors) {
     LCD.setCursor(0, 1);
+    tone(BUZZER, 230, 150);
     LCD.print("OVERLIMIT!");
   } else {
     LCD.setCursor(0, 1);
